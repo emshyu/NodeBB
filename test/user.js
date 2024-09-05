@@ -464,6 +464,9 @@ describe('User', () => {
 		});
 	});
 
+	// Beginning of test cases from ChatGPT to cover helper functions
+	// End of test cases from ChatGPT to cover helper functions
+
 	describe('.delete()', () => {
 		let uid;
 		before((done) => {
