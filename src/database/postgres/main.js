@@ -12,6 +12,25 @@ module.exports = function (module) {
 		await module.pool.query(`DELETE FROM "legacy_object"`);
 	};
 
+	async function checkIfzSetsExist(keys) {
+		const members = await Promise.all(
+			keys.map(key => module.getSortedSetRange(key, 0, 0))
+		);
+		return members.map(member => member.length > 0);
+	}
+
+	async function checkIfKeysExist(keys) {
+		const res = await module.pool.query({
+			name: 'existsArray',
+			text: `
+			SELECT o."_key" k
+			  FROM "legacy_object_live" o
+			 WHERE o."_key" = ANY($1::TEXT[])`,
+			values: [keys],
+		});
+		return keys.map(k => res.rows.some(r => r.k === k));
+	}
+
 	module.exists = async function (key) {
 		if (!key) {
 			return;
@@ -19,25 +38,6 @@ module.exports = function (module) {
 		const isArray = Array.isArray(key);
 		if (isArray && !key.length) {
 			return [];
-		}
-
-		async function checkIfzSetsExist(keys) {
-			const members = await Promise.all(
-				keys.map(key => module.getSortedSetRange(key, 0, 0))
-			);
-			return members.map(member => member.length > 0);
-		}
-
-		async function checkIfKeysExist(keys) {
-			const res = await module.pool.query({
-				name: 'existsArray',
-				text: `
-				SELECT o."_key" k
-  				FROM "legacy_object_live" o
- 				WHERE o."_key" = ANY($1::TEXT[])`,
-				values: [keys],
-			});
-			return keys.map(k => res.rows.some(r => r.k === k));
 		}
 
 		// Redis/Mongo consider empty zsets as non-existent, match that behaviour
