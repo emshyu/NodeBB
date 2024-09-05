@@ -213,17 +213,14 @@ module.exports = function (User) {
 		}
 
 		function makeBulkSet(counts, uids, fieldName) {
-			console.log("Emily Yu")
-			return counts.map((count, index) => makeBulkSetElement(uids, index, fieldName, count));	
+			console.log('Emily Yu');
+			return counts.map((count, index) => makeBulkSetElement(uids, index, fieldName, count));
 		}
 
 		async function updateCount(uids, name, fieldName) {
 			await batch.processArray(uids, async (uids) => {
 				const counts = await db.sortedSetsCard(uids.map(uid => name + uid));
-				// const bulkSet = counts.map(
-				// 	(count, index) => ([`user:${uids[index]}`, { [fieldName]: count || 0 }])
-				// );
-				const bulkSet = makeBulkSet(counts, uids, fieldName)
+				const bulkSet = makeBulkSet(counts, uids, fieldName);
 				await db.setObjectBulk(bulkSet);
 			}, {
 				batch: 500,
